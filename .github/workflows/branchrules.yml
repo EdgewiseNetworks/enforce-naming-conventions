@@ -1,0 +1,60 @@
+# This workflow enables a server side hook to enforce github naming conventions
+
+name: Manual workflow
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+
+on:
+  push:
+    branches-ignore:
+      - 'develop'
+      - 'integration/develop'
+      - 'master'
+      - 'main'
+      - 'release/**'
+      - 'hotfix/**'
+      - 'feature/([a-z]+-[0-9]+).*' #this is to enforce Jira ticket id at the start of any feature branch Ex: feature/rel-1215
+      - 'bugfix/([a-z]+-[0-9]+).*' #this is to enforce Jira ticket id at the start of any bugfix branch Ex: bugfix/rel-2450-fix-sample
+jobs:
+  # This workflow enables a server side hook to enforce github naming conventions
+
+  branchrules:
+    # The type of runner that the job will run on
+
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+
+    steps:
+    - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+
+    - name: branch convention
+      run: git push origin :${{ github.ref_name }}
+
+      # Notify teams through slack
+    - name: Post to a Slack channel
+      if: success()
+      id: slack
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+        channel-id: 'C04E6E1UWF6'
+        slack-message: |
+            Hey ${{ github.actor }}, There is something wrong with your branch name ${{ github.ref_name }}.
+            Branch names in this repository ${{ github.repository }} must adhere to use any of these patterns.
+            feature/<jiraid>-<summary>,bugfix/<jiraid>-<summary>,develop and integration/develop with all lowercase characters.
+            You should rename your branch to a valid name and try again.
+            To learn more about naming conventions refer this document.
+            https://edgewise.atlassian.net/wiki/spaces/INFRA/pages/3410657318/Valid+Branch+Naming+Conventions
+            Note >> Your branch ${{ github.ref_name }} got deleted from the remote repository ${{ github.repository }} due to invalid naming convention,
+            but it is still available in your local to rename with proper github branch naming conventions.
+            Rename your local branch using below command.
+            git branch -m old_branch new_branch
+            
+            We would suggest you to enable client hooks using below command,
+            as this helps to enable client hook and prevents branch deletion at server.
+            git config --global core.hooksPath .githooks
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
