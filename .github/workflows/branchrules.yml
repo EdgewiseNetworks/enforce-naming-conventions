@@ -12,10 +12,10 @@ on:
       - 'integration/develop'
       - 'master'
       - 'main'
-      - 'release/**'
-      - 'hotfix/**'
-      - 'feature/([a-z]+-[0-9]+).*' #this is to enforce Jira ticket id at the start of any feature branch Ex: feature/rel-1215
-      - 'bugfix/([a-z]+-[0-9]+).*' #this is to enforce Jira ticket id at the start of any bugfix branch Ex: bugfix/rel-2450-fix-sample
+      - 'release/![A-Z]**' #This should ignore branch names like release/10.hello.21 and not release/10.Hello.21 because it has capital letter in it
+      - 'hotfix/![A-Z]**' #This should ignore branch names like hotfix/10.hello.21 and not hotfix/10.Hello.21 because it has capital letter in it
+      - 'feature/[a-z]+-[0-9]+![A-Z]**' #This should ignore branches with pattern feature/rel-1215-naming-conventions and not feature/rel-1215-Naming-Conventions
+      - 'bugfix/[a-z]+-[0-9]+![A-Z]**' #This should ignore branches with pattern feature/rel-1215-naming-conventions and not bugfix/rel-1215-Naming-Conventions
 jobs:
   # This workflow enables a server side hook to enforce github naming conventions
 
